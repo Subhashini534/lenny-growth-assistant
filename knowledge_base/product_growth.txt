@@ -1,0 +1,16 @@
+﻿Topic: User Retention
+
+Practical retention principles:
+- Help users experience the product's core value early.
+- Study where users stop using the product.
+- Interview users who stop returning.
+- Improve onboarding to help users reach their first meaningful outcome.
+- Track retention by cohort.
+
+Topic: Product Growth
+
+Practical growth principles:
+- Identify the target audience and the problem the product solves.
+- Measure activation, engagement, and retention.
+- Run small experiments and evaluate their results.
+- Prioritize improvements based on user evidence.

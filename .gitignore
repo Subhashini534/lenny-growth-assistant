@@ -1,0 +1,24 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+**/venv/
+.venv/
+.pytest_cache/
+
+# Node.js
+node_modules/
+**/node_modules/
+dist/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# IDE and OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Exclude transcript until redistribution rights are verified
+knowledge_base/brian-halligan.md
