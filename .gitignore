@@ -22,3 +22,7 @@ Thumbs.db
 
 # Exclude transcript until redistribution rights are verified
 knowledge_base/brian-halligan.md
+
+# Unused root-level Node files
+/package.json
+/package-lock.json
