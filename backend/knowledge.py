@@ -5,13 +5,13 @@ import re
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 KNOWLEDGE_DIR = PROJECT_DIR / "knowledge_base"
 
-# Common words that don't help identify relevant content.
 STOP_WORDS = {
     "a", "an", "the", "is", "are", "was", "were",
     "to", "of", "in", "on", "for", "and", "or",
     "how", "what", "why", "can", "i", "we", "you",
     "my", "me", "it", "this", "that", "with",
-    "do", "does", "should", "could", "would"
+    "do", "does", "should", "could", "would",
+    "about", "from", "into", "your", "their", "they"
 }
 
 
@@ -22,23 +22,27 @@ def tokenize(text: str) -> set[str]:
 
 
 def search_knowledge(question: str) -> list[dict]:
-    """Return the three most relevant paragraphs from local text files."""
-    results = []
+    """Return up to three relevant paragraphs from local files."""
     question_terms = tokenize(question)
 
     if not question_terms or not KNOWLEDGE_DIR.exists():
-        return results
+        return []
 
-    files = list(KNOWLEDGE_DIR.glob("*.txt")) + list(KNOWLEDGE_DIR.glob("*.md"))
+    results = []
+    files = sorted(
+        list(KNOWLEDGE_DIR.glob("*.txt"))
+        + list(KNOWLEDGE_DIR.glob("*.md"))
+    )
+
     for file_path in files:
         try:
             text = file_path.read_text(encoding="utf-8-sig")
-        except OSError:
+        except (OSError, UnicodeError):
             continue
 
         paragraphs = [
             paragraph.strip()
-            for paragraph in text.split("\n\n")
+            for paragraph in re.split(r"\n\s*\n", text)
             if paragraph.strip()
         ]
 
@@ -46,29 +50,37 @@ def search_knowledge(question: str) -> list[dict]:
             paragraph_terms = tokenize(paragraph)
             matched_terms = question_terms & paragraph_terms
 
-            if matched_terms:
-                
-              results.append({
-    "source": file_path.name,
-    "title": (
-        "Sequoia CEO coach: Why it’s never been easier to start a company, "
-        "and never been harder to scale one | Brian Halligan (co-founder, HubSpot)"
-        if file_path.name == "brian-halligan.md"
-        else file_path.stem.replace("_", " ").replace("-", " ").title()
-    ),
-    "url": (
-        "https://www.youtube.com/watch?v=3UyitfSbY6c"
-        if file_path.name == "brian-halligan.md"
-        else ""
-    ),
-    "content": paragraph,
-    "score": len(matched_terms) / len(question_terms)
-})
+            if not matched_terms:
+                continue
+
+            score = len(matched_terms) / len(question_terms)
+
+            if score < 0.2:
+                continue
+
+            is_sample = file_path.name == "product_growth.txt"
+            is_brian = file_path.name == "brian-halligan.md"
+
+            results.append({
+                "source": file_path.name,
+                "title": (
+                    "Product Growth (sample knowledge)"
+                    if is_sample
+                    else (
+                        "Sequoia CEO coach: Brian Halligan"
+                        if is_brian
+                        else file_path.stem.replace("_", " ").replace("-", " ").title()
+                    )
+                ),
+                "url": (
+                    "https://www.youtube.com/watch?v=3UyitfSbY6c"
+                    if is_brian
+                    else ""
+                ),
+                "content": paragraph,
+                "score": score,
+                "is_sample": is_sample,
+            })
 
     results.sort(key=lambda item: item["score"], reverse=True)
-
-    # Ignore weak matches instead of returning unrelated paragraphs.
-    return [
-        item for item in results
-        if item["score"] >= 0.2
-    ][:3]
+    return results[:3]
